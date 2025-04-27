@@ -1,5 +1,11 @@
 {
-  "dependencies": {
-    "@inquirer/prompts": "^7.4.1"
-  }
+    "dependencies": {
+        "@inquirer/prompts": "^7.5.0"
+    },
+    "devDependencies": {
+        "bun-types": "^1.2.10"
+    },
+    "scripts": {
+        "start": "bun run index.js"
+    }
 }
