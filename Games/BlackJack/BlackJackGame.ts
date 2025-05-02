@@ -1,6 +1,6 @@
 import { Game } from '../types/Game';
 import { Player } from '../../Player/types/Players';
-import { SetCard } from '../types/Card';
+import { Card, SetCard } from '../types/Card';
 import { select } from '@inquirer/prompts';
 
 export class BlackJackGame implements Game {
@@ -19,6 +19,10 @@ export class BlackJackGame implements Game {
         if (this.players.size < this.minPlayers) {
             throw new Error(`Il faut au moins ${this.minPlayers} joueurs pour commencer`);
         }
+        console.log('Joueurs dans la partie :');
+        this.players.forEach(player => {
+            console.log(`- ${player.name}`);
+        });
         this.isGameActive = true;
         console.log('La partie de Blackjack commence !');
         this.turn = 0;
@@ -62,7 +66,14 @@ export class BlackJackGame implements Game {
         }
         this.turn = (this.turn + 1) % this.players.size;
         console.log(`C'est au tour du joueur ${this.turn}`);
-        
+        this.deck.shuffleDeck();
+        const cards = this.deck.drawCard(2);
+        if (!cards || cards.length === 0) {
+            throw new Error('Impossible de tirer des cartes');
+        }
+        const nonNullCards = cards.filter((card): card is Card => card !== null);
+        console.log(`Le joueur ${this.turn} a tiré les cartes : ${nonNullCards.map(card => `${card.rank} de ${card.suit}`).join(', ')}`);
+        console.log(`Le joueur ${this.turn} a ${nonNullCards.reduce((acc, card) => acc + card.value, 0)} points`);
         try {
             const answer = await select({
                 message: 'Que voulez-vous faire ?',

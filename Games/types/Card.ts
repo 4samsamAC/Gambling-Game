@@ -85,10 +85,23 @@ export class SetCard {
             });
         });
     }
+    public shuffleDeck(): void {
+        for (let i = this.deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+        }
+    }
+    public drawCard(time: number = 1): (Card | null)[] {
+        const deck = [];
+        if (this.deck.length === 0) {
+            return [];
+        }
+        for (let i = 0; i < time; i++) {
+            deck.push(this.deck.length > 0 ? this.deck.pop() || null : null);
+        }
+        return deck;
+    }
+    public putBackCard(card: Card): void {
+        this.deck.push(card);
+    }
 }
-
-// export function createSetCard(cards: Card[] = [], suit: Suit[] = [], rank: Rank[] = [], isFaceUp: boolean = false): Card[] {
-    
-
-//     return newCards;
-// }
