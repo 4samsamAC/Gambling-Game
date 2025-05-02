@@ -28,46 +28,67 @@ export interface Card {
     isFaceUp: boolean; // Pour gérer l'état de la carte (face visible/cachée)
 }
 
-// Fonction utilitaire pour obtenir la valeur numérique d'une carte
-export function getCardValue(card: Card): number {
-    switch (card.rank) {
-        case Rank.ACE:
-            return 11; // Ou 1 selon le contexte du jeu
-        case Rank.KING:
-        case Rank.QUEEN:
-        case Rank.JACK:
-            return 10;
-        default:
-            return parseInt(card.rank);
+export class Card {
+    constructor(
+        public suit: Suit,
+        public rank: Rank,
+        public value: number,
+        public isFaceUp: boolean = false
+    ) {
+        this.suit = suit;
+        this.rank = rank;
+        this.value = this.getCardValue();
+        this.isFaceUp = isFaceUp;
+    }
+    public getCardValue(): number {
+        switch (this.rank) {
+            case Rank.ACE:
+                return 11;
+            case Rank.KING:
+            case Rank.QUEEN:
+            case Rank.JACK:
+                return 10;
+            default:
+                return parseInt(this.rank);
+        }
+    }
+}
+export class SetCard {
+    public deck: Card[] = [];
+    constructor(
+        public cards: Card[] = [],
+        public suit: Suit[] = [],
+        public rank: Rank[] = [],
+        public isFaceUp: boolean = false,
+        public joker: boolean = false
+    ) {
+        this.cards = cards;
+        this.suit = suit;
+        this.rank = rank;
+        this.isFaceUp = isFaceUp;
+        this.joker = joker;
+     
+        Object.values(Suit).forEach((suitValue: Suit) => {
+            Object.values(Rank).forEach((rankValue: Rank) => {
+                const shouldExclude = 
+                    suit.includes(suitValue) || 
+                    rank.includes(rankValue) ||
+                    cards.some(existingCard => 
+                        existingCard.suit === suitValue && 
+                        existingCard.rank === rankValue
+                    );
+
+                if (!shouldExclude) {
+                    const card = new Card(suitValue, rankValue, parseInt(rankValue), isFaceUp);
+                    this.deck.push(card);
+                }
+            });
+        });
     }
 }
 
-export function createSetCard(cards: Card[] = [], suit: Suit[] = [], rank: Rank[] = [], isFaceUp: boolean = false): Card[] {
-    const newCards: Card[] = [];
+// export function createSetCard(cards: Card[] = [], suit: Suit[] = [], rank: Rank[] = [], isFaceUp: boolean = false): Card[] {
     
-    // Parcourir toutes les combinaisons possibles de cartes
-    Object.values(Suit).forEach((suitValue: Suit) => {
-        Object.values(Rank).forEach((rankValue: Rank) => {
-            // Vérifier si cette carte doit être exclue
-            const shouldExclude = 
-                suit.includes(suitValue) || 
-                rank.includes(rankValue) ||
-                cards.some(existingCard => 
-                    existingCard.suit === suitValue && 
-                    existingCard.rank === rankValue
-                );
 
-            if (!shouldExclude) {
-                const card: Card = {
-                    suit: suitValue,
-                    rank: rankValue,
-                    value: parseInt(rankValue),
-                    isFaceUp: isFaceUp,
-                };
-                newCards.push(card);
-            }
-        });
-    });
-
-    return newCards;
-}
+//     return newCards;
+// }

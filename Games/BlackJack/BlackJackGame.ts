@@ -1,5 +1,7 @@
 import { Game } from '../types/Game';
 import { Player } from '../../Player/types/Players';
+import { SetCard } from '../types/Card';
+import { select } from '@inquirer/prompts';
 
 export class BlackJackGame implements Game {
     public readonly id: string = 'blackjack';
@@ -10,6 +12,8 @@ export class BlackJackGame implements Game {
     
     private players: Set<Player> = new Set();
     private isGameActive: boolean = false;
+    private deck: SetCard = new SetCard();
+    private turn: number = 0;
 
     public startGame(): void {
         if (this.players.size < this.minPlayers) {
@@ -17,6 +21,8 @@ export class BlackJackGame implements Game {
         }
         this.isGameActive = true;
         console.log('La partie de Blackjack commence !');
+        this.turn = 0;
+        this.cycleTurn();
     }
 
     public endGame(): void {
@@ -37,11 +43,55 @@ export class BlackJackGame implements Game {
         console.log(`Le joueur ${player.name} a quitté la partie`);
     }
 
-    public cycleTurn(): void {
+    hit() {
+        throw new Error('Method not implemented.');
+    }
+    stand() {
+        throw new Error('Method not implemented.');
+    }
+    double() {
+        throw new Error('Method not implemented.');
+    }
+    fold() {
+        throw new Error('Method not implemented.');
+    }
+
+    public async cycleTurn(): Promise<void> {
         if (!this.isGameActive) {
             throw new Error("La partie n'est pas active");
         }
-        console.log("C'est le tour du joueur");
+        this.turn = (this.turn + 1) % this.players.size;
+        console.log(`C'est au tour du joueur ${this.turn}`);
+        
+        try {
+            const answer = await select({
+                message: 'Que voulez-vous faire ?',
+                choices: [
+                    { name: 'Tirer une carte', value: 'hit' },
+                    { name: 'Rester', value: 'stand' },
+                    { name: 'Doubler', value: 'double' },
+                    { name: 'Se coucher', value: 'fold' }
+                ]
+            });
 
+            switch (answer) {
+                case 'hit':
+                    this.hit();
+                    break;
+                case 'stand':
+                    this.stand();
+                    break;
+                case 'double':
+                    this.double();
+                    break;
+                case 'fold':
+                    this.fold();
+                    break;
+                default:
+                    console.log('Action non reconnue');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la saisie :', error);
+        }
     }
 } 
