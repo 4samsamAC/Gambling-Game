@@ -1,3 +1,5 @@
+import { Card } from "../../Games/types/Card";
+
 export class Player {
     private _id: string;
     private _name: string;
@@ -8,7 +10,7 @@ export class Player {
     private _isReady: boolean;
     private _isSpectator: boolean;
     private _isHost: boolean;
-    private _hand: string[];
+    private _hand: Card[];
 
     constructor(
         id: string,
@@ -38,7 +40,7 @@ export class Player {
     get isReady(): boolean { return this._isReady; }
     get isSpectator(): boolean { return this._isSpectator; }
     get isHost(): boolean { return this._isHost; }
-    get hand(): string[] { return this._hand; }
+    get hand(): Card[] { return this._hand; }
 
     addMoney(amount: number): void {
         this._balance += amount;
@@ -52,7 +54,7 @@ export class Player {
         return false;
     }
 
-    addToHand(card: string): void {
+    addToHand(card: Card): void {
         this._hand.push(card);
     }
 
