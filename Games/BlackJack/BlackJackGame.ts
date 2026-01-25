@@ -7,7 +7,7 @@ import { Bot } from '../../Bots/BlackJackBot/Bot';
 export class BlackJackGame implements Game { 
     public readonly id: string = 'blackjack';
     public readonly name: string = 'Blackjack';
-    public readonly description: string = "Un jeu de cartes classique où le but est d'obtenir 21 points";
+    public readonly description: string = "A classic card game where the goal is to obtain 21 points";
     public readonly minPlayers: number = 2;
     public readonly maxPlayers: number = 7;
     
@@ -21,13 +21,13 @@ export class BlackJackGame implements Game {
 
     public async startGame(): Promise<void> {
         if (this.players.length < this.minPlayers) {
-            console.log(`Il faut au moins ${this.minPlayers} joueurs pour commencer`);
+            console.log(`At least ${this.minPlayers} players are needed to start the game`);
             try {
                 const answer = await select({
-                    message: `Voulez-vous ajouter ${this.minPlayers - this.players.size} bot ?`,
+                    message: `Would you like to add  ${this.minPlayers - this.players.length} bot ?`,
                     choices: [
-                        { name: 'Oui', value: 'yes' },
-                        { name: 'Non', value: 'no' }
+                        { name: 'Yes', value: 'yes' },
+                        { name: 'No', value: 'no' }
                     ]
                 });
                 if (answer === 'yes') {
@@ -35,19 +35,19 @@ export class BlackJackGame implements Game {
                     this.addPlayer(bot);
                 }
                 if (answer === 'no') {
-                    console.log('La partie de Blackjack ne peut pas commencer');
+                    console.log('The game of Blackjack can\'t start');
                     return;
                 }
             } catch (error) {
-                console.error('Erreur lors de la saisie :', error);
+                console.error('Error when getting input :', error);
             }
         }
-        console.log('Joueurs dans la partie :');
+        console.log('Players in the games :');
         this.players.forEach(player => {
             console.log(`- ${player.name}`);
         });
         this.isGameActive = true;
-        console.log('La partie de Blackjack commence !');
+        console.log('The game of Blackjack begins!');
         this.deck.shuffleDeck();
         this.turn = -1;
         this.cycleTurn();
@@ -55,37 +55,35 @@ export class BlackJackGame implements Game {
 
     public endGame(): void {
         this.isGameActive = false;
-        console.log('La partie de Blackjack est terminée');
+        console.log('The Blackjack game is over');
     }
 
     public addPlayer(player: Player|Bot): void {
-        if (this.players.length >= this.maxPlayers)
-            throw new Error('Le nombre maximum de joueurs est atteint');
-        }
+        if (this.players.length >= this.maxPlayers) throw new Error('The maximum number of players has been reached');
+        
         this.players.push(player);
-        console.log(`Le joueur ${player.name} a rejoint la partie`);
+        console.log(`Player ${player.name} has joined the game`);
     }
 
     public removePlayer(player: Player|Bot): void {
         this.players.find(pl => pl == player);
-        console.log(`Le joueur ${player.name} a quitté la partie`);
+        console.log(`Player ${player.name} has left the game`);
     }
 
     // games actions 
 
     hit() {
-        this.deck.shuffleDeck();
         const cards = this.deck.drawCard(1);
         if (!cards || cards.length === 0) {
-            throw new Error('Impossible de tirer des cartes');
+            throw new Error('Unable to draw cards');
         }
         const nonNullCards = cards.filter((card): card is Card => card !== null);
-        console.log(`Le joueur ${this.playerTurn.name} a tiré les cartes : ${nonNullCards.map(card => `${card.rank} de ${card.suit}`).join(', ')}`);
+        console.log(`Player ${this.playerTurn.name} drew the cards: ${nonNullCards.map(card => `${card.rank} of ${card.suit}`).join(', ')}`);
         this.playerTurn.addToHand(nonNullCards[0] as unknown as Card);
         const points = this.playerTurn.hand.reduce((acc, card) => acc + card.value, 0);
-        console.log(`Le joueur ${this.playerTurn.name} a ${points} points`);
+        console.log(`Player ${this.playerTurn.name} has ${points} points`);
         if (points > 21) {
-            console.log(`Le joueur ${this.playerTurn.name} a perdu`);
+            console.log(`Player ${this.playerTurn.name} has lost`);
             this.endGame();
             return;
         }
@@ -107,23 +105,27 @@ export class BlackJackGame implements Game {
     // game loop
 
     public async cycleTurn(): Promise<void> {
+        if (!this.isGameActive) throw new Error("The game is not active");
+
         this.turn = (this.turn + 1) % this.players.length;
         this.playerTurn = this.players[this.turn] as Player|Bot;
+        console.log(`It's player ${this.playerTurn.name}'s turn`);
         const cards = this.deck.drawCard(2);
-        if (!cards || cards.length === 0) {
-            throw new Error('Impossible de tirer des cartes');
-        }
+        if (!cards || cards.length === 0) throw new Error('Unable to draw cards');
+
         const nonNullCards = cards.filter((card): card is Card => card !== null);
-        console.log(`Le joueur ${this.playerTurn.name} a tiré les cartes : ${nonNullCards.map(card => `${card.rank} de ${card.suit}`).join(', ')}`);
+        console.log(`Player ${this.playerTurn.name} drew the cards: ${nonNullCards.map(card => `${card.rank} of ${card.suit}`).join(', ')}`);
         const points = nonNullCards.reduce((acc, card) => acc + card.value, 0);
         this.playerTurn.addToHand(nonNullCards[0] as unknown as Card);
         this.playerTurn.addToHand(nonNullCards[1] as unknown as Card);
-        console.log(`Le joueur ${this.playerTurn.name} a ${points} points`);
+        console.log(`Player ${this.playerTurn.name} has ${points} points`);
         if (points > 21) {
+            console.log(`Player ${this.playerTurn.name} has lost`);
             this.endGame();
             return;
         }
         else if (points == 21) {
+            console.log(`Player ${this.playerTurn.name} won with a Blackjack!`);
             this.endGame();
             return;
         }
@@ -132,13 +134,13 @@ export class BlackJackGame implements Game {
             this.cycleTurn();
         } else try {
             const answer = await select({
-                message: 'Que voulez-vous faire ?',
+                message: 'What do you want to do?',
                 choices: [
-                    { name: 'Tirer une carte', value: 'hit' },
-                    { name: 'Rester', value: 'stand' },
-                    { name: 'Doubler', value: 'double' },
+                    { name: 'Draw', value: 'hit' },
+                    { name: 'Stay', value: 'stand' },
+                    { name: 'Double', value: 'double' },
                     { name: 'Split', value: 'split' },
-                    { name: 'Se coucher', value: 'fold' }
+                    { name: 'Fold', value: 'fold' }
                 ]
             });
 
