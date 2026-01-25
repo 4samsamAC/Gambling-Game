@@ -48,6 +48,7 @@ export class BlackJackGame implements Game {
         });
         this.isGameActive = true;
         console.log('La partie de Blackjack commence !');
+        this.deck.shuffleDeck();
         this.turn = -1;
         this.cycleTurn();
     }
@@ -57,7 +58,7 @@ export class BlackJackGame implements Game {
         console.log('La partie de Blackjack est terminée');
     }
 
-    public addPlayer(player: Player): void {
+    public addPlayer(player: Player|Bot): void {
         if (this.players.length >= this.maxPlayers)
             throw new Error('Le nombre maximum de joueurs est atteint');
         }
@@ -65,10 +66,12 @@ export class BlackJackGame implements Game {
         console.log(`Le joueur ${player.name} a rejoint la partie`);
     }
 
-    public removePlayer(player: Player): void {
+    public removePlayer(player: Player|Bot): void {
         this.players.find(pl => pl == player);
         console.log(`Le joueur ${player.name} a quitté la partie`);
     }
+
+    // games actions 
 
     hit() {
         this.deck.shuffleDeck();
@@ -89,14 +92,19 @@ export class BlackJackGame implements Game {
         this.cycleTurn();
     }
     stand() {
-        throw new Error('Method not implemented.');
+        
     }
     double() {
+        throw new Error('Method not implemented.');
+    }
+    split() {
         throw new Error('Method not implemented.');
     }
     fold() {
         throw new Error('Method not implemented.');
     }
+
+    // game loop
 
     public async cycleTurn(): Promise<void> {
         this.turn = (this.turn + 1) % this.players.length;
@@ -120,6 +128,7 @@ export class BlackJackGame implements Game {
             return;
         }
         if (this.playerTurn.isBot) {
+            await (this.playerTurn as Bot).play();
             this.cycleTurn();
         } else try {
             const answer = await select({
@@ -128,6 +137,7 @@ export class BlackJackGame implements Game {
                     { name: 'Tirer une carte', value: 'hit' },
                     { name: 'Rester', value: 'stand' },
                     { name: 'Doubler', value: 'double' },
+                    { name: 'Split', value: 'split' },
                     { name: 'Se coucher', value: 'fold' }
                 ]
             });
@@ -141,6 +151,9 @@ export class BlackJackGame implements Game {
                     break;
                 case 'double':
                     this.double();
+                    break;
+                case 'slpit':
+                    this.split();
                     break;
                 case 'fold':
                     this.fold();
