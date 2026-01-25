@@ -11,14 +11,16 @@ export class BlackJackGame implements Game {
     public readonly minPlayers: number = 2;
     public readonly maxPlayers: number = 7;
     
-    private players: Set<Player> = new Set();
+    private players: Array<Player|Bot> = new Array();
     private isGameActive: boolean = false;
     private deck: SetCard = new SetCard();
     private turn: number = 0;
-    private playerTurn: Player = this.players.values().next().value as Player;
+    private playerTurn: Player|Bot = this.players[this.turn] as Player|Bot;
+
+    // game management
 
     public async startGame(): Promise<void> {
-        if (this.players.size < this.minPlayers) {
+        if (this.players.length < this.minPlayers) {
             console.log(`Il faut au moins ${this.minPlayers} joueurs pour commencer`);
             try {
                 const answer = await select({
@@ -29,7 +31,7 @@ export class BlackJackGame implements Game {
                     ]
                 });
                 if (answer === 'yes') {
-                    const bot: Player = new Bot('Bot', this.deck) as unknown as Player;
+                    const bot: Player|Bot = new Bot('Bot', this.deck) as Player|Bot;
                     this.addPlayer(bot);
                 }
                 if (answer === 'no') {
@@ -46,7 +48,7 @@ export class BlackJackGame implements Game {
         });
         this.isGameActive = true;
         console.log('La partie de Blackjack commence !');
-        this.turn = 0;
+        this.turn = -1;
         this.cycleTurn();
     }
 
@@ -56,15 +58,15 @@ export class BlackJackGame implements Game {
     }
 
     public addPlayer(player: Player): void {
-        if (this.players.size >= this.maxPlayers) {
+        if (this.players.length >= this.maxPlayers)
             throw new Error('Le nombre maximum de joueurs est atteint');
         }
-        this.players.add(player);
+        this.players.push(player);
         console.log(`Le joueur ${player.name} a rejoint la partie`);
     }
 
     public removePlayer(player: Player): void {
-        this.players.delete(player);
+        this.players.find(pl => pl == player);
         console.log(`Le joueur ${player.name} a quitté la partie`);
     }
 
@@ -97,13 +99,8 @@ export class BlackJackGame implements Game {
     }
 
     public async cycleTurn(): Promise<void> {
-        if (!this.isGameActive) {
-            throw new Error("La partie n'est pas active");
-        }
-        this.turn = (this.turn + 1) % this.players.size;
-        this.playerTurn = this.players.values().next().value as Player;
-        console.log(`C'est au tour du joueur ${this.playerTurn.name}`);
-        this.deck.shuffleDeck();
+        this.turn = (this.turn + 1) % this.players.length;
+        this.playerTurn = this.players[this.turn] as Player|Bot;
         const cards = this.deck.drawCard(2);
         if (!cards || cards.length === 0) {
             throw new Error('Impossible de tirer des cartes');
@@ -115,11 +112,16 @@ export class BlackJackGame implements Game {
         this.playerTurn.addToHand(nonNullCards[1] as unknown as Card);
         console.log(`Le joueur ${this.playerTurn.name} a ${points} points`);
         if (points > 21) {
-            console.log(`Le joueur ${this.playerTurn.name} a perdu`);
             this.endGame();
             return;
         }
-        try {
+        else if (points == 21) {
+            this.endGame();
+            return;
+        }
+        if (this.playerTurn.isBot) {
+            this.cycleTurn();
+        } else try {
             const answer = await select({
                 message: 'Que voulez-vous faire ?',
                 choices: [

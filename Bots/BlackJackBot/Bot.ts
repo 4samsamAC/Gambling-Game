@@ -1,16 +1,12 @@
 import { SetCard, Card } from "../../Games/types/Card";
+import { Player } from "../../Player";
 
-export interface Bot {
-    name: string;
-    deck: SetCard;
-}
 
-export class Bot {
-    public name: string;
+export class Bot extends Player {
     public deck: SetCard;
 
     constructor(name: string, deck: SetCard) {
-        this.name = name;
+        super(`bot-${Math.floor(Math.random() * 10000)}`, name, true);
         this.deck = deck;
     }
 

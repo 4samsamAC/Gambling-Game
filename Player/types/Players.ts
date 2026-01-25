@@ -15,15 +15,15 @@ export class Player {
     constructor(
         id: string,
         name: string,
-        balance: number = 1000,
         isBot: boolean = false,
-        isHost: boolean = false
+        isHost: boolean = false,
+        balance: number = 1000
     ) {
         this._id = id;
         this._name = name;
+        this._isBot = isBot;
         this._score = 0;
         this._balance = balance;
-        this._isBot = isBot;
         this._isActive = true;
         this._isReady = false;
         this._isSpectator = false;
